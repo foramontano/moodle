@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+    dbapp:
+        image: mysql:5
+        container_name: mysql-moodle
+        restart: always
+        volumes:
+            - db-volume:/var/lib/mysql
+        env_file:
+            - moodle_variables.env
+        networks:
+            - backendDB
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: any
+    moodleapp:
+        image: foramontano/moodle3.8:0.1.0
+        container_name: moodle3.8
+        links:
+            - dbapp:DB
+        depends_on: 
+            - dbapp
+        restart: always
+        volumes:
+            - moodleapp-data:/var/moodledata
+            - php-dir:/etc/php/7.4/apache2 
+        ports:
+            - 8006:80
+            - 4430:443
+        env_file:
+            - moodle_variables.env
+        networks:
+            - backendDB
+            - frontendWEB
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: any            
+
+volumes: 
+    db-volume:
+    moodleapp-data:
+    php-dir:
+
+networks:
+    backendDB:
+    frontendWEB:
